@@ -125,10 +125,10 @@ export default function App() {
         <main id="main-content">
           <HeroSlider />
           <About />
+          <WhyChooseUs />
+          <Goals />
           <Services />
           <Values />
-          <Goals />
-          <WhyChooseUs />
           <Contact />
         </main>
         <Footer />

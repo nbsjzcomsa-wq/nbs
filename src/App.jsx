@@ -9,7 +9,6 @@ import WhyChooseUs from './components/WhyChooseUs';
 import Contact from './components/Contact';
 import Footer from './components/Footer';
 import WhatsAppButton from './components/WhatsAppButton';
-import Preloader from './components/Preloader';
 
 const STRUCTURED_DATA = {
   "@context": "https://schema.org",
@@ -121,7 +120,6 @@ export default function App() {
         <script type="application/ld+json">{JSON.stringify(STRUCTURED_DATA)}</script>
       </Helmet>
 
-      <Preloader />
       <div className="page-wrapper">
         <Header />
         <main id="main-content">

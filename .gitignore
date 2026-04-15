@@ -1,1 +1,11 @@
-nbs.zip
+node_modules/
+dist/
+.env
+.env.*
+*.local
+*.log
+.DS_Store
+Thumbs.db
+nbs1.zip
+nbs1.rar
+react/

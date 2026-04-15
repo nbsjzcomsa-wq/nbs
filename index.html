@@ -12,13 +12,14 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/assets/images/favicons/favicon-16x16.png" />
     <link rel="manifest" href="/assets/images/favicons/site.webmanifest" />
 
+    <link rel="preload" as="image" href="/assets/images/نبراس-الجزيرة-للمحاماة-والاستشارات-القانونية.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Marcellus&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
 
-    <link rel="stylesheet" href="/assets/vendors/bootstrap/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="/assets/vendors/fontawesome/css/all.min.css" />
-    <link rel="stylesheet" href="/assets/vendors/procounsel-icons/style.css" />
+    <link rel="stylesheet" href="/assets/vendors/bootstrap/css/bootstrap.min.css" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="/assets/vendors/fontawesome/css/all.min.css" media="print" onload="this.media='all'" />
+    <link rel="stylesheet" href="/assets/vendors/procounsel-icons/style.css" media="print" onload="this.media='all'" />
 
     <link rel="stylesheet" href="/assets/css/procounsel.css" />
     <link rel="stylesheet" href="/assets/css/procounsel-rtl.css" />
@@ -109,10 +110,30 @@
             font-size: 30px;
             line-height: 1;
         }
+
+        #splash {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background: #324556;
+            gap: 24px;
+        }
+
+        #splash img {
+            width: 180px;
+            animation: fadeInSplash 0.4s ease both;
+        }
+
+        @keyframes fadeInSplash {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
-    <div id="root"></div>
+    <div id="root"><div id="splash"><img src="/assets/images/نبراس-الجزيرة-للمحاماة-والاستشارات-القانونية.png" alt="نبراس الجزيرة" width="180" /></div></div>
     <script type="module" src="/src/main.jsx"></script>
 </body>
 </html>

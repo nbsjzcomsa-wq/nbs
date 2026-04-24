@@ -1,6 +1,5 @@
 import { HelmetProvider, Helmet } from 'react-helmet-async';
 import Header from './components/Header';
-import HeroSlider from './components/HeroSlider';
 import About from './components/About';
 import Services from './components/Services';
 import Values from './components/Values';
@@ -114,16 +113,12 @@ export default function App() {
 
         <meta name="theme-color" content="#324556" />
 
-        <link rel="preload" as="image" href="/assets/images/نبراس-الجزيرة-للمحاماة-والاستشارات-القانونية.png" fetchPriority="high" />
-        <link rel="preload" as="image" href="/assets/images/resources/نبراس-الجزيرة-للمحاماة-والاستشارات-القانونية-الرياض.jpg" fetchPriority="high" />
-
         <script type="application/ld+json">{JSON.stringify(STRUCTURED_DATA)}</script>
       </Helmet>
 
       <div className="page-wrapper">
         <Header />
         <main id="main-content">
-          <HeroSlider />
           <About />
           <WhyChooseUs />
           <Goals />

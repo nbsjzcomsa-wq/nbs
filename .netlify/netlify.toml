@@ -1,0 +1,75 @@
+functionsDirectory = "C:\\Users\\pc\\Desktop\\nbs1\\netlify\\functions"
+functionsDirectoryOrigin = "config"
+redirectsOrigin = "config"
+plugins = []
+headers = []
+
+[build]
+publish = "C:\\Users\\pc\\Desktop\\nbs1\\dist"
+publishOrigin = "config"
+commandOrigin = "config"
+command = "npm run build"
+functions = "C:\\Users\\pc\\Desktop\\nbs1\\netlify\\functions"
+
+[build.environment]
+NODE_VERSION = "20"
+
+[build.processing]
+
+[build.processing.css]
+
+[build.processing.html]
+
+[build.processing.images]
+
+[build.processing.js]
+
+[build.services]
+
+[dev]
+command = "vite"
+targetPort = 5173.0
+port = 8888.0
+publish = "dist"
+
+[functions]
+
+[functions."*"]
+external_node_modules = ["@google-analytics/data", "google-gax", "@grpc/grpc-js", "@grpc/proto-loader", "protobufjs"]
+node_bundler = "esbuild"
+
+[[redirects]]
+from = "/api/analytics"
+to = "/.netlify/functions/analytics"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/api/admin/login"
+to = "/.netlify/functions/admin-login"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]

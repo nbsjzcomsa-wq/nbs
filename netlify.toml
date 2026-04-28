@@ -2,6 +2,38 @@
   command = "npm run build"
   publish = "dist"
 
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+  # مكتبات Google Analytics تحتوي gRPC؛ الإبقاء عليها خارج الحزمة يقلّل أخطاء التجميع على Netlify
+  external_node_modules = [
+    "@google-analytics/data",
+    "google-gax",
+    "@grpc/grpc-js",
+    "@grpc/proto-loader",
+    "protobufjs"
+  ]
+
+[dev]
+  command = "vite"
+  targetPort = 5173
+  port = 8888
+  publish = "dist"
+
+# مسارات API قبل توجيه SPA (مهم الترتيب)
+[[redirects]]
+  from = "/api/analytics"
+  to = "/.netlify/functions/analytics"
+  status = 200
+
+[[redirects]]
+  from = "/api/admin/login"
+  to = "/.netlify/functions/admin-login"
+  status = 200
+
 [[redirects]]
   from = "/*"
   to = "/index.html"

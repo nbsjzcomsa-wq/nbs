@@ -7,7 +7,7 @@ const DATA_DIR = join(__dirname, 'data');
 const DATA_FILE = join(DATA_DIR, 'visitor-stats.json');
 
 /** القيمة المعروضة في الواجهة = المخزَّن + هذا القيمة (قاع يبدأ من 16) */
-const VISITOR_DISPLAY_OFFSET = 55;
+const VISITOR_DISPLAY_OFFSET = 92;
 
 function ensureFile() {
   if (!existsSync(DATA_DIR)) {

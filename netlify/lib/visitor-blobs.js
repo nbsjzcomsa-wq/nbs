@@ -4,7 +4,7 @@ const STORE_NAME = 'nbs-visitors-v1';
 const KEY = 'visitor-stats';
 
 /** القيمة المعروضة في الواجهة = المخزَّن + هذا القيمة (قاع يبدأ من 16) */
-const VISITOR_DISPLAY_OFFSET = 55;
+const VISITOR_DISPLAY_OFFSET = 92;
 
 export async function incrementVisitFromEvent(event) {
   connectLambda(event);

@@ -186,8 +186,30 @@ export default function Admin() {
                       borderColor: '#ffe082',
                     }}
                   >
-                    <strong style={{ color: '#6d4c41' }}>وضع تجريبي</strong>
+                    <strong style={{ color: '#6d4c41' }}>وضع تجريبي — لم يُحمَّل تقرير حقيقي من Google</strong>
                     <p style={{ margin: '8px 0 0', color: '#5d4037', lineHeight: 1.6 }}>{data.message}</p>
+                    {data.configuration ? (
+                      <ul style={{ margin: '12px 0 0', paddingInlineStart: 20, color: '#5d4037', fontSize: 14 }}>
+                        <li>معرّف الخاصية GA4: {data.configuration.hasPropertyId ? 'مُضبط' : 'غير مُضبط'}</li>
+                        <li>
+                          اعتماد Google (JSON أو ملف):{' '}
+                          {data.configuration.hasCredentials ? 'مُضبط' : 'غير مُضبط'}
+                        </li>
+                      </ul>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {data.source === 'ga4' && data.note ? (
+                  <div
+                    style={{
+                      ...cardStyle,
+                      marginBottom: 20,
+                      background: '#e3f2fd',
+                      borderColor: '#90caf9',
+                    }}
+                  >
+                    <p style={{ margin: 0, color: '#1565c0', lineHeight: 1.6 }}>{data.note}</p>
                   </div>
                 ) : null}
 

@@ -35,12 +35,23 @@ publish = "dist"
 [functions]
 
 [functions."*"]
-external_node_modules = ["@google-analytics/data", "google-gax", "@grpc/grpc-js", "@grpc/proto-loader", "protobufjs"]
 node_bundler = "esbuild"
 
 [[redirects]]
-from = "/api/analytics"
-to = "/.netlify/functions/analytics"
+from = "/api/stats"
+to = "/.netlify/functions/stats"
+status = 200.0
+force = false
+
+[redirects.query]
+
+[redirects.conditions]
+
+[redirects.headers]
+
+[[redirects]]
+from = "/api/visit"
+to = "/.netlify/functions/visit"
 status = 200.0
 force = false
 

@@ -1,7 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
-import { fetchGa4LiveData, getDemoPayload, cleanupCredentialsTempFile } from './analytics-core.js';
+import { getVisitorStats, incrementVisitor } from './visitor-store.js';
 
 const app = express();
 const PORT = Number(process.env.PORT) || 3001;
@@ -34,20 +35,28 @@ app.post('/api/admin/login', (req, res) => {
   res.status(401).json({ ok: false, error: 'كلمة المرور غير صحيحة' });
 });
 
-app.get('/api/analytics', authMiddleware, async (_req, res) => {
+/** زيادة العداد — استدعاء عام من الواجهة عند أول تحميل للجلسة */
+app.post('/api/visit', (_req, res) => {
   try {
-    const live = await fetchGa4LiveData();
-    if (live) {
-      return res.json(live);
-    }
-    return res.json(getDemoPayload());
+    const stats = incrementVisitor();
+    res.json({ ok: true, ...stats });
   } catch (err) {
-    console.error('[analytics]', err.message);
-    res.status(502).json({
-      error: 'فشل جلب بيانات Analytics',
-      details: err.message,
-      fallback: getDemoPayload(),
+    console.error('[visit]', err);
+    res.status(500).json({ error: 'فشل تحديث العداد', details: err.message });
+  }
+});
+
+/** لوحة الإدارة — قراءة فقط */
+app.get('/api/stats', authMiddleware, (_req, res) => {
+  try {
+    const stats = getVisitorStats();
+    res.json({
+      source: 'local-counter',
+      ...stats,
     });
+  } catch (err) {
+    console.error('[stats]', err);
+    res.status(502).json({ error: 'فشل قراءة الإحصاء', details: err.message });
   }
 });
 
@@ -56,7 +65,6 @@ const server = app.listen(PORT, () => {
 });
 
 function shutdown() {
-  cleanupCredentialsTempFile();
   server.close(() => process.exit(0));
 }
 

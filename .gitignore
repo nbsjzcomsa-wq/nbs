@@ -4,6 +4,7 @@ dist/
 .env.*
 *.local
 *.log
+server/data/
 .DS_Store
 Thumbs.db
 nbs1.zip

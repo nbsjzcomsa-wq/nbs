@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 
 const TOKEN_KEY = 'admin_jwt';
+
+/** فاصل استطلاع الإحصاء من الخادم (بالملّي ثانية) */
+const STATS_POLL_INTERVAL_MS = 15000;
 
 export default function Admin() {
   const [password, setPassword] = useState('');
@@ -10,11 +14,14 @@ export default function Admin() {
   const [data, setData] = useState(null);
   const [fetchError, setFetchError] = useState('');
 
-  const loadAnalytics = useCallback(async (authToken) => {
-    setLoading(true);
+  const loadStats = useCallback(async (authToken, options = {}) => {
+    const silent = options.silent === true;
+    if (!silent) {
+      setLoading(true);
+    }
     setFetchError('');
     try {
-      const res = await fetch('/api/analytics', {
+      const res = await fetch('/api/stats', {
         headers: {
           Authorization: `Bearer ${authToken}`,
         },
@@ -28,27 +35,48 @@ export default function Admin() {
       }
       if (!res.ok) {
         setFetchError(json.error || `خطأ ${res.status}`);
-        setData(json.fallback || null);
+        if (!silent) setData(null);
         return;
       }
       setData(json);
     } catch (e) {
       setFetchError(e.message || 'فشل الاتصال بالخادم');
-      setData(null);
+      if (!silent) setData(null);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    if (token) {
-      sessionStorage.setItem(TOKEN_KEY, token);
-      loadAnalytics(token);
-    } else {
+    if (!token) {
       sessionStorage.removeItem(TOKEN_KEY);
+      return undefined;
     }
-  }, [token, loadAnalytics]);
 
+    sessionStorage.setItem(TOKEN_KEY, token);
+    loadStats(token);
+
+    const poll = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      loadStats(token, { silent: true });
+    };
+
+    const intervalId = window.setInterval(poll, STATS_POLL_INTERVAL_MS);
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        poll();
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibility);
+
+    return () => {
+      window.clearInterval(intervalId);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+  }, [token, loadStats]);
   async function handleLogin(e) {
     e.preventDefault();
     setLoginError('');
@@ -79,194 +107,193 @@ export default function Admin() {
     setFetchError('');
   }
 
-  const cardStyle = {
-    background: '#fff',
+  const panelSurface = {
+    background: '#ffffff',
     borderRadius: 12,
-    padding: '20px 24px',
-    boxShadow: '0 8px 24px rgba(50,69,86,0.12)',
-    border: '1px solid rgba(50,69,86,0.08)',
+    padding: 'clamp(28px, 4vw, 44px)',
+    boxShadow: '0 12px 48px rgba(50, 69, 86, 0.09)',
+    border: '1px solid rgba(50, 69, 86, 0.06)',
+    borderInlineStart: '4px solid var(--procounsel-base, #c7954a)',
+    maxWidth: 560,
+    margin: '0 auto',
   };
 
-  const labelStyle = { fontSize: 13, color: '#6b7c88', marginBottom: 8 };
-  const valueStyle = { fontSize: 28, fontWeight: 700, color: '#324556', margin: 0 };
-
   return (
-    <div
-      lang="ar"
-      dir="rtl"
-      style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(160deg, #324556 0%, #1f2f3d 100%)',
-        fontFamily: '"Plus Jakarta Sans", system-ui, sans-serif',
-        padding: '32px 16px',
-      }}
-    >
-      <div style={{ maxWidth: 960, margin: '0 auto' }}>
-        <header style={{ marginBottom: 28, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <h1 style={{ color: '#fff', margin: 0, fontSize: 'clamp(1.35rem, 3vw, 1.75rem)' }}>
-            لوحة الإحصائيات — GA4
-          </h1>
-          {token ? (
-            <button
-              type="button"
-              onClick={logout}
-              style={{
-                background: 'rgba(255,255,255,0.12)',
-                color: '#fff',
-                border: '1px solid rgba(255,255,255,0.25)',
-                borderRadius: 8,
-                padding: '10px 18px',
-                cursor: 'pointer',
-                fontWeight: 600,
-              }}
-            >
-              تسجيل الخروج
-            </button>
-          ) : null}
-        </header>
-
-        {!token ? (
-          <div style={cardStyle}>
-            <h2 style={{ marginTop: 0, color: '#324556' }}>تسجيل الدخول</h2>
-            <form onSubmit={handleLogin} style={{ display: 'grid', gap: 16, maxWidth: 360 }}>
-              <label style={{ display: 'grid', gap: 8 }}>
-                <span style={labelStyle}>كلمة المرور</span>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                  style={{
-                    padding: '12px 14px',
-                    borderRadius: 8,
-                    border: '1px solid #cfd8dc',
-                    fontSize: 16,
-                  }}
-                />
-              </label>
-              {loginError ? (
-                <p style={{ color: '#c62828', margin: 0, fontSize: 14 }}>{loginError}</p>
-              ) : null}
-              <button
-                type="submit"
-                disabled={loading}
-                style={{
-                  background: '#c89f67',
-                  color: '#1a1a1a',
-                  border: 'none',
-                  borderRadius: 8,
-                  padding: '12px 20px',
-                  fontWeight: 700,
-                  cursor: loading ? 'wait' : 'pointer',
-                }}
-              >
-                {loading ? 'جاري التحقق…' : 'دخول'}
-              </button>
-            </form>
-          </div>
-        ) : (
-          <>
-            {fetchError ? (
-              <p style={{ color: '#ffcdd2', marginBottom: 16 }}>{fetchError}</p>
-            ) : null}
-
-            {loading && !data ? (
-              <p style={{ color: '#e0e0e0' }}>جاري تحميل البيانات…</p>
-            ) : null}
-
-            {data ? (
-              <>
-                {data.source === 'demo' && data.message ? (
-                  <div
+    <div className="page-wrapper">
+      <header
+        style={{
+          backgroundColor: 'var(--procounsel-primary, #324556)',
+          padding: '20px 0',
+          borderBottom: '1px solid rgba(255,255,255,0.08)',
+        }}
+      >
+        <div className="container">
+          <div className="row align-items-center justify-content-between g-3">
+            <div className="col-auto">
+              <div className="d-flex align-items-center gap-3 flex-wrap">
+                <Link to="/" style={{ display: 'inline-flex', flexShrink: 0 }}>
+                  <img
+                    src="/assets/images/نبراس-الجزيرة-للمحاماة-والاستشارات-القانونية.png"
+                    alt="نبراس الجزيرة للمحاماة والاستشارات القانونية"
+                    width={112}
+                  />
+                </Link>
+                <div>
+                  <p style={{ margin: 0, color: 'rgba(255,255,255,0.72)', fontSize: 13 }}>لوحة الإدارة</p>
+                  <h1
                     style={{
-                      ...cardStyle,
-                      marginBottom: 20,
-                      background: '#fff8e1',
-                      borderColor: '#ffe082',
+                      margin: 0,
+                      color: '#fff',
+                      fontFamily: 'var(--procounsel-heading-font, "Marcellus", serif)',
+                      fontWeight: 400,
+                      fontSize: 'clamp(1.15rem, 2.5vw, 1.45rem)',
+                      lineHeight: 1.35,
                     }}
                   >
-                    <strong style={{ color: '#6d4c41' }}>وضع تجريبي — لم يُحمَّل تقرير حقيقي من Google</strong>
-                    <p style={{ margin: '8px 0 0', color: '#5d4037', lineHeight: 1.6 }}>{data.message}</p>
-                    {data.configuration ? (
-                      <ul style={{ margin: '12px 0 0', paddingInlineStart: 20, color: '#5d4037', fontSize: 14 }}>
-                        <li>معرّف الخاصية GA4: {data.configuration.hasPropertyId ? 'مُضبط' : 'غير مُضبط'}</li>
-                        <li>
-                          اعتماد Google (JSON أو ملف):{' '}
-                          {data.configuration.hasCredentials ? 'مُضبط' : 'غير مُضبط'}
-                        </li>
-                      </ul>
-                    ) : null}
-                  </div>
-                ) : null}
-
-                {data.source === 'ga4' && data.note ? (
-                  <div
-                    style={{
-                      ...cardStyle,
-                      marginBottom: 20,
-                      background: '#e3f2fd',
-                      borderColor: '#90caf9',
-                    }}
-                  >
-                    <p style={{ margin: 0, color: '#1565c0', lineHeight: 1.6 }}>{data.note}</p>
-                  </div>
-                ) : null}
-
-                <div
-                  style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
-                    gap: 16,
-                    marginBottom: 24,
-                  }}
+                    إحصاء زيارات الصفحة الرئيسية
+                  </h1>
+                </div>
+              </div>
+            </div>
+            {token ? (
+              <div className="col-auto">
+                <button
+                  type="button"
+                  className="btn btn-outline-light btn-sm px-3 py-2"
+                  onClick={logout}
+                  style={{ borderRadius: 8 }}
                 >
-                  {[
-                    ['الجلسات', data.sessions],
-                    ['المستخدمون', data.users],
-                    ['مشاهدات الصفحات', data.pageViews],
-                    ['مستخدمون جدد', data.newUsers],
-                  ].map(([label, val]) => (
-                    <div key={label} style={cardStyle}>
-                      <div style={labelStyle}>{label}</div>
-                      <p style={valueStyle}>{typeof val === 'number' ? val.toLocaleString('ar-SA') : val}</p>
-                    </div>
-                  ))}
-                </div>
-
-                <div style={cardStyle}>
-                  <h3 style={{ marginTop: 0, color: '#324556' }}>أكثر الصفحات مشاهدةً</h3>
-                  {data.topPages?.length ? (
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ textAlign: 'right', borderBottom: '2px solid #eceff1' }}>
-                          <th style={{ padding: '10px 8px' }}>المسار</th>
-                          <th style={{ padding: '10px 8px', width: 120 }}>المشاهدات</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {data.topPages.map((row, i) => (
-                          <tr key={`${row.path}-${i}`} style={{ borderBottom: '1px solid #eceff1' }}>
-                            <td style={{ padding: '10px 8px', wordBreak: 'break-all' }}>{row.path}</td>
-                            <td style={{ padding: '10px 8px' }}>{row.views.toLocaleString('ar-SA')}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  ) : (
-                    <p style={{ color: '#78909c', margin: 0 }}>لا توجد صفوف للصفحات في هذه الفترة.</p>
-                  )}
-                </div>
-
-                <p style={{ color: 'rgba(255,255,255,0.65)', fontSize: 13, marginTop: 20 }}>
-                  المصدر: {data.source === 'ga4' ? 'Google Analytics Data API (حقيقي)' : 'تجريبي'} · Measurement ID:{' '}
-                  {data.measurementId}
-                </p>
-              </>
+                  تسجيل الخروج
+                </button>
+              </div>
             ) : null}
-          </>
-        )}
-      </div>
+          </div>
+        </div>
+      </header>
+
+      <section style={{ padding: 'clamp(56px, 8vw, 96px) 0', backgroundColor: 'var(--procounsel-gray2, #ededed)', minHeight: 'calc(100vh - 120px)' }}>
+        <div className="container">
+          {!token ? (
+            <div style={panelSurface}>
+              <div className="sec-title text-right" style={{ paddingBottom: 28 }}>
+                <p className="sec-title__tagline" style={{ textTransform: 'none', letterSpacing: 0 }}>
+                  الدخول الآمن
+                </p>
+                <h2 className="sec-title__title" style={{ fontSize: 'clamp(28px, 4vw, 40px)', lineHeight: 1.25 }}>
+                  تسجيل الدخول
+                </h2>
+              </div>
+              <form onSubmit={handleLogin} className="text-right" style={{ display: 'grid', gap: 18 }}>
+                <label style={{ display: 'grid', gap: 8 }}>
+                  <span style={{ fontSize: 15, color: 'var(--procounsel-text, #838790)' }}>كلمة المرور</span>
+                  <input
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                    className="form-control"
+                    style={{
+                      padding: '14px 16px',
+                      borderRadius: 8,
+                      border: '1px solid rgba(50,69,86,0.15)',
+                      fontSize: 16,
+                      background: '#fafafa',
+                    }}
+                  />
+                </label>
+                {loginError ? (
+                  <p style={{ color: '#c62828', margin: 0, fontSize: 14 }}>{loginError}</p>
+                ) : null}
+                <div className="mt-2">
+                  <button type="submit" disabled={loading} className="procounsel-btn" style={{ border: 'none', cursor: loading ? 'wait' : 'pointer' }}>
+                    <i>{loading ? 'جاري التحقق…' : 'دخول'}</i>
+                    <span>{loading ? 'جاري التحقق…' : 'دخول'}</span>
+                  </button>
+                </div>
+              </form>
+            </div>
+          ) : (
+            <>
+              {fetchError ? (
+                <p className="text-center" style={{ color: '#b71c1c', marginBottom: 24 }}>
+                  {fetchError}
+                </p>
+              ) : null}
+
+              {loading && !data ? (
+                <p className="text-center" style={{ color: 'var(--procounsel-primary, #324556)' }}>جاري التحميل…</p>
+              ) : null}
+
+              {data ? (
+                <div style={panelSurface}>
+                  <div className="sec-title text-right" style={{ paddingBottom: 8 }}>
+                    <p className="sec-title__tagline" style={{ textTransform: 'none', letterSpacing: 0 }}>
+                      نظرة سريعة
+                    </p>
+                    <h2 className="sec-title__title" style={{ fontSize: 'clamp(26px, 3.5vw, 36px)', lineHeight: 1.3 }}>
+                      إجمالي الزيارات
+                    </h2>
+                  </div>
+
+                  <div
+                    style={{
+                      padding: '28px 24px',
+                      borderRadius: 10,
+                      background: 'linear-gradient(135deg, rgba(50,69,86,0.04) 0%, rgba(199,149,74,0.06) 100%)',
+                      border: '1px solid rgba(50, 69, 86, 0.07)',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <p
+                      style={{
+                        margin: 0,
+                        fontFamily: 'var(--procounsel-heading-font, "Marcellus", serif)',
+                        fontSize: 'clamp(48px, 10vw, 72px)',
+                        lineHeight: 1,
+                        fontWeight: 400,
+                        color: 'var(--procounsel-primary, #324556)',
+                      }}
+                    >
+                      {data.totalVisits?.toLocaleString('ar-SA') ?? '—'}
+                    </p>
+                  </div>
+
+                  <p
+                    dir="rtl"
+                    style={{
+                      margin: '24px 0 0',
+                      fontSize: 15,
+                      color: '#5a6570',
+                      direction: 'rtl',
+                      unicodeBidi: 'isolate',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'flex-start',
+                      gap: 10,
+                      flexWrap: 'nowrap',
+                      width: '100%',
+                      textAlign: 'right',
+                    }}
+                  >
+                    <span>
+                      آخر تحديث:{' '}
+                      {data.updatedAt
+                        ? new Date(data.updatedAt).toLocaleString('ar-SA', {
+                            dateStyle: 'medium',
+                            timeStyle: 'short',
+                          })
+                        : '—'}
+                    </span>
+                    <span className="icon-clock" style={{ color: 'var(--procounsel-base, #c7954a)', fontSize: 18, flexShrink: 0 }} aria-hidden />
+                  </p>
+
+                </div>
+              ) : null}
+            </>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

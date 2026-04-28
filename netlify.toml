@@ -8,14 +8,6 @@
 [functions]
   directory = "netlify/functions"
   node_bundler = "esbuild"
-  # مكتبات Google Analytics تحتوي gRPC؛ الإبقاء عليها خارج الحزمة يقلّل أخطاء التجميع على Netlify
-  external_node_modules = [
-    "@google-analytics/data",
-    "google-gax",
-    "@grpc/grpc-js",
-    "@grpc/proto-loader",
-    "protobufjs"
-  ]
 
 [dev]
   command = "vite"
@@ -23,10 +15,14 @@
   port = 8888
   publish = "dist"
 
-# مسارات API قبل توجيه SPA (مهم الترتيب)
 [[redirects]]
-  from = "/api/analytics"
-  to = "/.netlify/functions/analytics"
+  from = "/api/stats"
+  to = "/.netlify/functions/stats"
+  status = 200
+
+[[redirects]]
+  from = "/api/visit"
+  to = "/.netlify/functions/visit"
   status = 200
 
 [[redirects]]
